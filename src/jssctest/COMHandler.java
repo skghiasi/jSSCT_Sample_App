@@ -56,13 +56,15 @@ public class COMHandler implements ICOMObservable, ICOMWriteObservable, ICOMConn
             System.out.println("parity: " + parity_bits); 
             System.out.println("stop_bits: " + stop_bits);  
 
-            serialPort = new SerialPort("COM4"); 
+            serialPort = new SerialPort("COM3"); 
     try {
             serialPort.openPort();//Open port
             serialPort.setParams(9600, 8, 1, 0);//Set params
             int mask = SerialPort.MASK_RXCHAR ;//+ SerialPort.MASK_CTS + SerialPort.MASK_DSR;//Prepare mask
             serialPort.setEventsMask(mask);//Set mask
             serialPort.addEventListener(new SerialReader(this));//Add SerialPortEventListener
+            
+            startThreads(new SerialWriter(this));
     }
     catch (SerialPortException ex) {
 //            System.out.println(ex);
@@ -73,7 +75,8 @@ public class COMHandler implements ICOMObservable, ICOMWriteObservable, ICOMConn
      
     public void disconnect () throws Exception{
           stopThreads();
-          serialPort.closePort(); 
+          if(serialPort.isOpened())
+            serialPort.closePort(); 
           
 
           message = "Disconnected from COM port"; 
@@ -132,38 +135,32 @@ public class COMHandler implements ICOMObservable, ICOMWriteObservable, ICOMConn
     
 
     /** */
-    public static class SerialWriter implements Runnable, ICOMWriteObserver 
+    public static class SerialWriter implements ICOMWriteObserver, Runnable
     {
         
         COMHandler instance_of_comhandler;
         byte [] com_write_message; 
 //        
-//        public SerialWriter ( OutputStream out , COMHandlerRxTx instance_of_comhandler )
-//        {
+        public SerialWriter ( /* OutputStream out , */ COMHandler instance_of_comhandler )
+        {
 //            this.out = out;
-//            this.instance_of_comhandler = instance_of_comhandler; 
-//            this.instance_of_comhandler.addComWriteObserver((ICOMWriteObserver)this);
-//            
-//        }
+            this.instance_of_comhandler = instance_of_comhandler; 
+            this.instance_of_comhandler.addComWriteObserver((ICOMWriteObserver)this);
+            
+        }
         
+        @Override
         public void run ()
         {
-//            Thread thisThread = Thread.currentThread(); 
-//            try
-//            {                
-////                int c = 0;
-//                while (this.com_write_message != null && writerThread != thisThread)
-//                {
-//                    this.out.write(instance_of_comhandler.com_write_message);
-//                    com_write_message = null; 
-//                }                
-//            }
-//            catch ( IOException e )
-//            {
-////                e.printStackTrace();
-//                instance_of_comhandler.setObserversMessage("A problem occured in Serial Writer");
-//                instance_of_comhandler.notifyCOMObservers(ICOMObserver.COMObserverEvents.ERROR_RAISED);
-//            }            
+            Thread thisThread = Thread.currentThread();
+            try{
+                while(com_write_message != null && writerThread != thisThread){
+                      serialPort.writeBytes(com_write_message); 
+                      com_write_message = null; 
+                }
+            }catch(Exception e){
+                
+            }
         }
         
         @Override 
@@ -175,10 +172,10 @@ public class COMHandler implements ICOMObservable, ICOMWriteObservable, ICOMConn
     }
     
     private void startThreads(SerialWriter serial_writer /*, SerialReader serial_reader*/){
-//        readerThread = new Thread(serial_reader); 
+////        readerThread = new Thread(serial_reader); 
         writerThread = new Thread(serial_writer); 
-        
-//        readerThread.start();
+//        
+////        readerThread.start();
         writerThread.start();
     }
     

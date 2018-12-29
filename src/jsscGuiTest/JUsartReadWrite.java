@@ -54,6 +54,11 @@ public class JUsartReadWrite extends javax.swing.JFrame implements ICOMObserver 
         jScrollPane1.setViewportView(jTextArea1);
 
         jButton1.setText("Send");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("Connect");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -126,6 +131,10 @@ public class JUsartReadWrite extends javax.swing.JFrame implements ICOMObserver 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         controller.disconnectFromCom();
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        controller.setCOMWriteString("test string ");
+    }//GEN-LAST:event_jButton1ActionPerformed
     
     private void appendToTextArea(JTextArea text_area, String text){
         String current_text = text_area.getText(); 
@@ -135,7 +144,12 @@ public class JUsartReadWrite extends javax.swing.JFrame implements ICOMObserver 
    
     @Override 
     public void updateOnCOMEvent(ICOMObserver.COMObserverEvents event){
-        String message = com_handler.getCOMData(); 
+        String message = ""; 
+        if(event == ICOMObserver.COMObserverEvents.DATA_READY)
+            message = com_handler.getCOMData(); 
+        else if(event == ICOMObserver.COMObserverEvents.MESSAGE_RAISED)
+            message = com_handler.getStringMessage(); 
+        
         appendToTextArea(jTextArea1, message); 
     }
 

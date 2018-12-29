@@ -38,5 +38,9 @@ public class JsscController {
         }
     }
     
+    public void setCOMWriteString(String str){
+        comport_model.setCOMWriteString(str);
+    }
+    
     
 }
